@@ -1,0 +1,56 @@
+import numpy as np
+import pandas as pd
+from sklearn.metrics.pairwise import cosine_similarity
+
+
+# Sample dataset: Users and Movies
+
+data = {
+    'User': ['A','A','B','B','C','C','D','D','E','E'],
+    'Movie': [
+        'Kalki 2898 AD','Robot / Enthiran',
+        'Kalki 2898 AD','Krrish 3',
+        'Robot / Enthiran','Krrish 3',
+        'Bahubali','RRR',
+        'Dhoom 3','Dilwale Dulhania Le Jayenge'
+    ],
+    'Rating': [5,4,4,5,5,4,0,5,0,5]   # mix of 0s, 5s, and mixed ratings
+}
+df = pd.DataFrame(data)
+
+# Movie features 
+movie_features = {
+    'Kalki 2898 AD': [1,1,0],      #'Sci-Fi','Action','Romance'.
+    'Krrish 3': [1,1,1],           #'Sci-Fi','Action','Romance'.
+    'Bahubali': [0,1,1],           #'Sci-Fi','Action','Romance'.
+    'RRR': [0,1,0],                #'Sci-Fi','Action','Romance'.
+    'Dhoom 3': [0,1,0],            #'Sci-Fi','Action','Romance'.
+    'Dilwale Dulhania Le Jayenge': [0,0,1]  #'Sci-Fi','Action','Romance'.
+}
+
+movie_df = pd.DataFrame(movie_features).T
+movie_df.columns = ['Sci-Fi','Action','Romance']
+
+# Ask user for preferences
+print("Please rate your preference for Movie (0 = dislike, 1 = like):")
+sci_fi = int(input("Sci-Fi (0 or 1): "))
+action = int(input("Action (0 or 1): "))
+romance = int(input("Romance (0 or 1): "))
+
+user_pref = np.array([[sci_fi, action, romance]])
+
+# Content-Based Recommendation
+movie_similarity = cosine_similarity(movie_df, user_pref)
+movie_df['Similarity'] = movie_similarity
+
+# Sort movies by similarity score
+recommended_movies = movie_df.sort_values(by='Similarity', ascending=False)
+
+# Output
+print("\n=== Recommendations Based on Your Movie Ratings ===")
+for movie in recommended_movies.index:
+    print(f"🎬 {movie} (Similarity Score: {movie_df.loc[movie, 'Similarity']:.2f})")
+
+best_movie = recommended_movies.index[0]
+best_score = recommended_movies.iloc[0]['Similarity']
+print(f"\n🌟 The best recommendation is: {best_movie} (Score: {best_score:.2f})")
